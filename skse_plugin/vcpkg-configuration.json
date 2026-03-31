@@ -11,7 +11,6 @@
       "baseline": "7abd808aa0ae8d65710f3a9f77f15937530309aa",
       "packages": [
         "commonlibsse-ng-prebuilt",
-        "commonlibsse-ng-flatrim",
         "commonlibsse-ng",
         "commonlibsse-ng-ae",
         "commonlibsse-ng-se",
