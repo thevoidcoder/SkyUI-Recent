@@ -23,22 +23,29 @@ jobs:
           vcpkgJsonGlob: '**/skse_plugin/vcpkg.json'
 
       - name: Cache vcpkg installed packages
-        id: vcpkg-cache
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/skse_plugin/build/vcpkg_installed
           key: vcpkg-x64-windows-static-md-${{ hashFiles('skse_plugin/vcpkg.json', 'skse_plugin/vcpkg-configuration.json', 'skse_plugin/ports/**') }}
+          restore-keys: |
+            vcpkg-x64-windows-static-md-
 
       - name: Install vcpkg packages
-        if: steps.vcpkg-cache.outputs.cache-hit != 'true'
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path "${{ github.workspace }}/skse_plugin/build" | Out-Null
-          & "$env:VCPKG_ROOT/vcpkg.exe" install `
-            --triplet x64-windows-static-md `
-            "--x-manifest-root=${{ github.workspace }}/skse_plugin" `
-            "--x-install-root=${{ github.workspace }}/skse_plugin/build/vcpkg_installed" `
-            "--overlay-ports=${{ github.workspace }}/skse_plugin/ports"
+          $tripletDir = "${{ github.workspace }}/skse_plugin/build/vcpkg_installed/x64-windows-static-md"
+          if (Test-Path $tripletDir) {
+            Write-Host "Cache restored – skipping vcpkg install."
+          } else {
+            Write-Host "No cache – running vcpkg install..."
+            New-Item -ItemType Directory -Force -Path "${{ github.workspace }}/skse_plugin/build" | Out-Null
+            & "$env:VCPKG_ROOT/vcpkg.exe" install `
+              --triplet x64-windows-static-md `
+              "--x-manifest-root=${{ github.workspace }}/skse_plugin" `
+              "--x-install-root=${{ github.workspace }}/skse_plugin/build/vcpkg_installed" `
+              "--overlay-ports=${{ github.workspace }}/skse_plugin/ports"
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
 
       - name: Configure CMake
         run: |
