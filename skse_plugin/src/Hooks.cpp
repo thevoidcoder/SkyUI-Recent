@@ -18,6 +18,8 @@ namespace skyui_recent::hooks
         using PlayPickupSoundAndMessage_t = void(RE::TESBoundObject*, std::int32_t, bool, bool, void*);
         std::uintptr_t _PlayPickupSoundAndMessage_Flora1 = 0;
         std::uintptr_t _PlayPickupSoundAndMessage_Flora2 = 0;
+        std::uintptr_t _PlayPickupSoundAndMessage_AddItemFunctor = 0;
+        std::uintptr_t _PlayPickupSoundAndMessage_AddItem = 0;
 
         void AddObjectToContainer(RE::Actor* a_this, RE::TESBoundObject* a_object,
                                   RE::ExtraDataList* a_extraList, std::int32_t a_count,
@@ -74,6 +76,24 @@ namespace skyui_recent::hooks
                 SKSE::log::trace("Tracked (flora) {:08X} x{}", a_object->GetFormID(), a_count);
             }
         }
+
+        void PlayPickupSoundAndMessage_AddItemFunctor(RE::TESBoundObject* a_object, std::int32_t a_count, bool a3, bool a4, void* a5)
+        {
+            reinterpret_cast<PlayPickupSoundAndMessage_t*>(_PlayPickupSoundAndMessage_AddItemFunctor)(a_object, a_count, a3, a4, a5);
+            if (a_object) {
+                AcquiredTracker::GetSingleton().MarkItemAdded(a_object->GetFormID(), 0);
+                SKSE::log::trace("Tracked (additem) {:08X} x{}", a_object->GetFormID(), a_count);
+            }
+        }
+
+        void PlayPickupSoundAndMessage_AddItem(RE::TESBoundObject* a_object, std::int32_t a_count, bool a3, bool a4, void* a5)
+        {
+            reinterpret_cast<PlayPickupSoundAndMessage_t*>(_PlayPickupSoundAndMessage_AddItem)(a_object, a_count, a3, a4, a5);
+            if (a_object) {
+                AcquiredTracker::GetSingleton().MarkItemAdded(a_object->GetFormID(), 0);
+                SKSE::log::trace("Tracked (additem2) {:08X} x{}", a_object->GetFormID(), a_count);
+            }
+        }
     }
 
     void Install()
@@ -88,6 +108,14 @@ namespace skyui_recent::hooks
             floraHook.address() + 0x260, reinterpret_cast<std::uintptr_t>(PlayPickupSoundAndMessage_Flora1));
         _PlayPickupSoundAndMessage_Flora2 = trampoline.write_call<5>(
             floraHook.address() + 0x3CD, reinterpret_cast<std::uintptr_t>(PlayPickupSoundAndMessage_Flora2));
+
+        REL::Relocation<std::uintptr_t> addItemFunctorHook{ RELOCATION_ID(55946, 56490) };
+        _PlayPickupSoundAndMessage_AddItemFunctor = trampoline.write_call<5>(
+            addItemFunctorHook.address() + 0x1C6, reinterpret_cast<std::uintptr_t>(PlayPickupSoundAndMessage_AddItemFunctor));
+
+        REL::Relocation<std::uintptr_t> addItemHook{ RELOCATION_ID(15887, 16127) };
+        _PlayPickupSoundAndMessage_AddItem = trampoline.write_call<5>(
+            addItemHook.address() + 0x182, reinterpret_cast<std::uintptr_t>(PlayPickupSoundAndMessage_AddItem));
 
         SKSE::log::info("SkyUIRecentSort: pickup hooks installed.");
     }
