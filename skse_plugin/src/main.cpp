@@ -43,6 +43,7 @@ SKSEPluginLoad(const SKSE::LoadInterface* a_skse)
 
     SKSE::log::info("SkyUIRecentSort v0.1.0 loaded.");
 
+    SKSE::AllocTrampoline(1 << 7);
     skyui_recent::hooks::Install();
 
     auto* ser = SKSE::GetSerializationInterface();
