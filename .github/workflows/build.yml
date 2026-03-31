@@ -28,7 +28,8 @@ jobs:
                 -S "${{ github.workspace }}/skse_plugin" `
                 -DCMAKE_BUILD_TYPE=Release `
                 -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake" `
-                -DVCPKG_TARGET_TRIPLET=x64-windows-static-md
+                -DVCPKG_TARGET_TRIPLET=x64-windows-static-md `
+                -DVCPKG_OVERLAY_PORTS="${{ github.workspace }}/skse_plugin/ports"
 
       - name: Build
         run: |
