@@ -1,0 +1,23 @@
+{
+  "mod": "SkyUIRecentSort",
+  "target": "InventoryMenu",
+  "columns": [
+    {
+      "id": "acquired",
+      "label": "Acquired",
+      "type": "number",
+      "width": 110,
+      "sortable": true,
+      "defaultSort": "desc",
+      "valueProvider": {
+        "type": "papyrusGlobal",
+        "script": "SUIR_AcquiredBridge",
+        "function": "GetItemAcquiredTimeSimple",
+        "args": ["item.form"]
+      },
+      "display": {
+        "type": "timestamp"
+      }
+    }
+  ]
+}
