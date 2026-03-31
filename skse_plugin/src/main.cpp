@@ -1,13 +1,11 @@
+#include "PCH.h"
+
 #include "AcquiredTracker.h"
 #include "PapyrusBindings.h"
 #include "ScaleformExtension.h"
 #include "Serialization.h"
 
-#include <SKSE/SKSE.h>
-#include <RE/Skyrim.h>
-
 #include <chrono>
-#include <spdlog/sinks/basic_file_sink.h>
 
 namespace skyui_recent::events
 {

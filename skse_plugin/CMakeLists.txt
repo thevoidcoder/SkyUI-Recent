@@ -22,6 +22,8 @@ target_include_directories(SkyUIRecentSort PRIVATE
     "${FAST_CPP_CSV_PARSER_INCLUDE_DIRS}"
 )
 
+target_precompile_headers(SkyUIRecentSort PRIVATE src/PCH.h)
+
 target_link_libraries(SkyUIRecentSort
     PRIVATE
         CommonLibSSE::CommonLibSSE
