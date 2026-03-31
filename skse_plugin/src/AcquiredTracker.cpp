@@ -17,6 +17,18 @@ namespace skyui_recent
 
     void AcquiredTracker::RestoreItem(std::uint32_t formID, std::uint32_t extraUniqueID, std::int64_t counterValue)
     {
+        // TEMP: zero out legacy unix timestamps saved by older builds.
+        // Unix timestamps for 2026 are ~1.74e9; real counters stay small.
+        // TODO: remove this block once all saves have been migrated.
+        static constexpr std::int64_t kUnixThreshold = 1'000'000'000LL;
+        if (counterValue > kUnixThreshold) {
+            counterValue = 0;
+        }
+
+        if (counterValue <= 0) {
+            return;
+        }
+
         std::unique_lock lock(_lock);
         _timestamps[ItemKey{ formID, extraUniqueID }] = counterValue;
         if (counterValue > _counter) {
