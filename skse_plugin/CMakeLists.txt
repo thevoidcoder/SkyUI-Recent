@@ -11,6 +11,7 @@ find_path(FAST_CPP_CSV_PARSER_INCLUDE_DIRS NAMES "csv.h"
 
 add_library(SkyUIRecentSort SHARED
     src/main.cpp
+    src/Hooks.cpp
     src/AcquiredTracker.cpp
     src/Serialization.cpp
     src/PapyrusBindings.cpp
