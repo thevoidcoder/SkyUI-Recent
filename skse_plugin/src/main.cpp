@@ -20,6 +20,11 @@ extern "C" __declspec(dllexport) auto SKSEPlugin_Version = []() {
     v.PluginName("SkyUIRecentSort");
     v.AuthorName("");
     v.UsesAddressLibrary(true);
+    // SKSE 2.2.6+ (AE >= 1.6.629) needs kVersionIndependentEx_NoStructUse
+    // (bit 0 of versionIndependenceEx, raw SKSE offset 0x304).
+    // Our CL PluginVersionData has supportEmail[256] vs SKSE's supportEmail[252],
+    // so versionIndependenceEx physically overlaps supportEmail[252..255].
+    v.supportEmail[252] = '\x01';
     return v;
 }();
 
