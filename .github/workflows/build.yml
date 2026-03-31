@@ -22,7 +22,15 @@ jobs:
           vcpkgGitCommitId: '6015c398c7789565d4fa548f1fc54f651c018b11'
           vcpkgJsonGlob: '**/skse_plugin/vcpkg.json'
 
+      - name: Cache vcpkg installed packages
+        id: vcpkg-cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/skse_plugin/build/vcpkg_installed
+          key: vcpkg-x64-windows-static-md-${{ hashFiles('skse_plugin/vcpkg.json', 'skse_plugin/vcpkg-configuration.json', 'skse_plugin/ports/**') }}
+
       - name: Install vcpkg packages
+        if: steps.vcpkg-cache.outputs.cache-hit != 'true'
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path "${{ github.workspace }}/skse_plugin/build" | Out-Null
