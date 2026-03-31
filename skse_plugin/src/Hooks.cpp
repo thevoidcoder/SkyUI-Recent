@@ -2,8 +2,6 @@
 #include "Hooks.h"
 #include "AcquiredTracker.h"
 
-#include <chrono>
-
 namespace skyui_recent::hooks
 {
     namespace
@@ -16,14 +14,6 @@ namespace skyui_recent::hooks
 
         REL::Relocation<AddObjectToContainer_t> _AddObjectToContainer;
         REL::Relocation<PickUpObject_t>         _PickUpObject;
-
-        std::int64_t Now()
-        {
-            return std::chrono::time_point_cast<std::chrono::seconds>(
-                       std::chrono::system_clock::now())
-                .time_since_epoch()
-                .count();
-        }
 
         void AddObjectToContainer(RE::Actor* a_this, RE::TESBoundObject* a_object,
                                   RE::ExtraDataList* a_extraList, std::int32_t a_count,
@@ -43,7 +33,7 @@ namespace skyui_recent::hooks
             }
 
             AcquiredTracker::GetSingleton().MarkItemAdded(
-                a_object->GetFormID(), uniqueID, Now());
+                a_object->GetFormID(), uniqueID);
             SKSE::log::trace("Tracked (container) {:08X} uid={}", a_object->GetFormID(), uniqueID);
         }
 
@@ -67,7 +57,7 @@ namespace skyui_recent::hooks
             }
 
             AcquiredTracker::GetSingleton().MarkItemAdded(
-                base->GetFormID(), uniqueID, Now());
+                base->GetFormID(), uniqueID);
             SKSE::log::trace("Tracked (pickup) {:08X} uid={}", base->GetFormID(), uniqueID);
         }
     }

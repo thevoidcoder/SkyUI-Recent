@@ -39,7 +39,7 @@ namespace skyui_recent::serialization
             if (!a_intfc->ResolveFormID(rec.formID, newFormID)) {
                 continue;
             }
-            AcquiredTracker::GetSingleton().MarkItemAdded(newFormID, rec.uniqueID, rec.acquiredAt);
+            AcquiredTracker::GetSingleton().RestoreItem(newFormID, rec.uniqueID, rec.acquiredAt);
         }
     }
 

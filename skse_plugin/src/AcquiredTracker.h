@@ -30,7 +30,8 @@ namespace skyui_recent
     public:
         static AcquiredTracker& GetSingleton();
 
-        void MarkItemAdded(std::uint32_t formID, std::uint32_t extraUniqueID, std::int64_t unixTimeSeconds);
+        void MarkItemAdded(std::uint32_t formID, std::uint32_t extraUniqueID);
+        void RestoreItem(std::uint32_t formID, std::uint32_t extraUniqueID, std::int64_t counterValue);
         [[nodiscard]] std::int64_t GetAcquiredTime(std::uint32_t formID, std::uint32_t extraUniqueID) const;
 
         template <class Fn>
@@ -48,6 +49,7 @@ namespace skyui_recent
 
     private:
         mutable std::shared_mutex _lock;
+        std::int64_t _counter{ 0 };
         std::unordered_map<ItemKey, std::int64_t, ItemKeyHash> _timestamps;
     };
 }

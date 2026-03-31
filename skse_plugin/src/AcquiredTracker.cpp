@@ -9,10 +9,19 @@ namespace skyui_recent
         return singleton;
     }
 
-    void AcquiredTracker::MarkItemAdded(std::uint32_t formID, std::uint32_t extraUniqueID, std::int64_t unixTimeSeconds)
+    void AcquiredTracker::MarkItemAdded(std::uint32_t formID, std::uint32_t extraUniqueID)
     {
         std::unique_lock lock(_lock);
-        _timestamps[ItemKey{ formID, extraUniqueID }] = unixTimeSeconds;
+        _timestamps[ItemKey{ formID, extraUniqueID }] = ++_counter;
+    }
+
+    void AcquiredTracker::RestoreItem(std::uint32_t formID, std::uint32_t extraUniqueID, std::int64_t counterValue)
+    {
+        std::unique_lock lock(_lock);
+        _timestamps[ItemKey{ formID, extraUniqueID }] = counterValue;
+        if (counterValue > _counter) {
+            _counter = counterValue;
+        }
     }
 
     std::int64_t AcquiredTracker::GetAcquiredTime(std::uint32_t formID, std::uint32_t extraUniqueID) const
@@ -40,5 +49,6 @@ namespace skyui_recent
     {
         std::unique_lock lock(_lock);
         _timestamps.clear();
+        _counter = 0;
     }
 }
