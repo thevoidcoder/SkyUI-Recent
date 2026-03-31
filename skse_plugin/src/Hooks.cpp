@@ -19,46 +19,48 @@ namespace skyui_recent::hooks
                                   RE::ExtraDataList* a_extraList, std::int32_t a_count,
                                   RE::TESObjectREFR* a_fromRefr)
         {
-            _AddObjectToContainer(a_this, a_object, a_extraList, a_count, a_fromRefr);
-
-            if (!a_object || a_this != RE::PlayerCharacter::GetSingleton()) {
-                return;
-            }
-
+            // Capture data BEFORE calling original; a_extraList may be consumed by it.
+            RE::FormID formID = 0;
             std::uint16_t uniqueID = 0;
-            if (a_extraList) {
-                if (const auto* extra = a_extraList->GetByType<RE::ExtraUniqueID>()) {
-                    uniqueID = extra->uniqueID;
+            if (a_object && a_this == RE::PlayerCharacter::GetSingleton()) {
+                formID = a_object->GetFormID();
+                if (a_extraList) {
+                    if (const auto* extra = a_extraList->GetByType<RE::ExtraUniqueID>()) {
+                        uniqueID = extra->uniqueID;
+                    }
                 }
             }
 
-            AcquiredTracker::GetSingleton().MarkItemAdded(
-                a_object->GetFormID(), uniqueID);
-            SKSE::log::trace("Tracked (container) {:08X} uid={}", a_object->GetFormID(), uniqueID);
+            _AddObjectToContainer(a_this, a_object, a_extraList, a_count, a_fromRefr);
+
+            if (formID != 0) {
+                AcquiredTracker::GetSingleton().MarkItemAdded(formID, uniqueID);
+                SKSE::log::trace("Tracked (container) {:08X} uid={}", formID, uniqueID);
+            }
         }
 
         void PickUpObject(RE::Actor* a_this, RE::TESObjectREFR* a_object,
                           std::uint32_t a_count, bool a_arg3, bool a_playSound)
         {
+            // Capture data BEFORE calling original; a_object (world ref) is
+            // removed from the scene by the original and becomes a dangling ptr.
+            RE::FormID baseFormID = 0;
+            std::uint16_t uniqueID = 0;
+            if (a_object && a_this == RE::PlayerCharacter::GetSingleton()) {
+                if (auto* base = a_object->GetBaseObject()) {
+                    baseFormID = base->GetFormID();
+                    if (const auto* extra = a_object->extraList.GetByType<RE::ExtraUniqueID>()) {
+                        uniqueID = extra->uniqueID;
+                    }
+                }
+            }
+
             _PickUpObject(a_this, a_object, a_count, a_arg3, a_playSound);
 
-            if (!a_object || a_this != RE::PlayerCharacter::GetSingleton()) {
-                return;
+            if (baseFormID != 0) {
+                AcquiredTracker::GetSingleton().MarkItemAdded(baseFormID, uniqueID);
+                SKSE::log::trace("Tracked (pickup) {:08X} uid={}", baseFormID, uniqueID);
             }
-
-            auto* base = a_object->GetBaseObject();
-            if (!base) {
-                return;
-            }
-
-            std::uint16_t uniqueID = 0;
-            if (const auto* extra = a_object->extraList.GetByType<RE::ExtraUniqueID>()) {
-                uniqueID = extra->uniqueID;
-            }
-
-            AcquiredTracker::GetSingleton().MarkItemAdded(
-                base->GetFormID(), uniqueID);
-            SKSE::log::trace("Tracked (pickup) {:08X} uid={}", base->GetFormID(), uniqueID);
         }
     }
 
