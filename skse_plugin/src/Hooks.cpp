@@ -20,27 +20,16 @@ namespace skyui_recent::hooks
                                   RE::TESObjectREFR* a_fromRefr)
         {
             RE::FormID formID = 0;
-            std::uint16_t uniqueID = 0;
             if (a_object && a_this == RE::PlayerCharacter::GetSingleton()) {
-                SKSE::log::trace("AddObjToContainer enter obj={:p} extra={:p}", (void*)a_object, (void*)a_extraList);
                 formID = a_object->GetFormID();
                 SKSE::log::trace("AddObjToContainer formID={:08X}", formID);
-                if (a_extraList) {
-                    SKSE::log::trace("AddObjToContainer: GetByType ExtraUniqueID");
-                    if (const auto* extra = a_extraList->GetByType<RE::ExtraUniqueID>()) {
-                        uniqueID = extra->uniqueID;
-                    }
-                    SKSE::log::trace("AddObjToContainer: uid={}", uniqueID);
-                }
-                SKSE::log::trace("AddObjToContainer: calling original");
             }
 
             _AddObjectToContainer(a_this, a_object, a_extraList, a_count, a_fromRefr);
 
             if (formID != 0) {
-                SKSE::log::trace("AddObjToContainer: original returned, tracking");
-                AcquiredTracker::GetSingleton().MarkItemAdded(formID, uniqueID);
-                SKSE::log::trace("Tracked (container) {:08X} uid={}", formID, uniqueID);
+                AcquiredTracker::GetSingleton().MarkItemAdded(formID, 0);
+                SKSE::log::trace("Tracked (container) {:08X}", formID);
             }
         }
 
@@ -48,29 +37,18 @@ namespace skyui_recent::hooks
                           std::uint32_t a_count, bool a_arg3, bool a_playSound)
         {
             RE::FormID baseFormID = 0;
-            std::uint16_t uniqueID = 0;
             if (a_object && a_this == RE::PlayerCharacter::GetSingleton()) {
-                SKSE::log::trace("PickUpObject enter obj={:p}", (void*)a_object);
-                auto* base = a_object->GetBaseObject();
-                SKSE::log::trace("PickUpObject: base={:p}", (void*)base);
-                if (base) {
+                if (auto* base = a_object->GetBaseObject()) {
                     baseFormID = base->GetFormID();
                     SKSE::log::trace("PickUpObject: baseFormID={:08X}", baseFormID);
-                    SKSE::log::trace("PickUpObject: GetByType ExtraUniqueID");
-                    if (const auto* extra = a_object->extraList.GetByType<RE::ExtraUniqueID>()) {
-                        uniqueID = extra->uniqueID;
-                    }
-                    SKSE::log::trace("PickUpObject: uid={}", uniqueID);
                 }
-                SKSE::log::trace("PickUpObject: calling original");
             }
 
             _PickUpObject(a_this, a_object, a_count, a_arg3, a_playSound);
 
             if (baseFormID != 0) {
-                SKSE::log::trace("PickUpObject: original returned, tracking");
-                AcquiredTracker::GetSingleton().MarkItemAdded(baseFormID, uniqueID);
-                SKSE::log::trace("Tracked (pickup) {:08X} uid={}", baseFormID, uniqueID);
+                AcquiredTracker::GetSingleton().MarkItemAdded(baseFormID, 0);
+                SKSE::log::trace("Tracked (pickup) {:08X}", baseFormID);
             }
         }
     }
