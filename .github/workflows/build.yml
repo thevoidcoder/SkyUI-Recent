@@ -1,0 +1,76 @@
+name: Build Plugin
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:   # lets you trigger manually from the GitHub web UI
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Cache vcpkg downloads + built packages so repeat builds are fast
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgGitCommitId: 'c8696863d371ab7f46e213d8f5ca923c4aef2a00'
+          vcpkgJsonGlob: '**/skse_plugin/vcpkg.json'
+
+      - name: Configure CMake
+        run: |
+          cmake -B "${{ github.workspace }}/skse_plugin/build" `
+                -S "${{ github.workspace }}/skse_plugin" `
+                -DCMAKE_BUILD_TYPE=Release `
+                -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake" `
+                -DVCPKG_TARGET_TRIPLET=x64-windows-static
+
+      - name: Build
+        run: |
+          cmake --build "${{ github.workspace }}/skse_plugin/build" --config Release
+
+      - name: Locate DLL
+        id: find_dll
+        shell: pwsh
+        run: |
+          $dll = Get-ChildItem -Path "${{ github.workspace }}/skse_plugin/build" `
+                               -Filter "SkyUIRecentSort.dll" -Recurse |
+                 Select-Object -First 1 -ExpandProperty FullName
+          echo "dll_path=$dll" >> $env:GITHUB_OUTPUT
+
+      - name: Upload DLL artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SkyUIRecentSort-dll
+          path: ${{ steps.find_dll.outputs.dll_path }}
+          if-no-files-found: error
+
+      # Full packaged zip (without Papyrus — no Skyrim on the runner)
+      - name: Package mod zip
+        shell: pwsh
+        run: |
+          $root    = "${{ github.workspace }}"
+          $staging = "$root/staging"
+          $dll     = "${{ steps.find_dll.outputs.dll_path }}"
+
+          New-Item -ItemType Directory -Path "$staging/SKSE/Plugins"    -Force | Out-Null
+          New-Item -ItemType Directory -Path "$staging/Interface/skyui"  -Force | Out-Null
+          New-Item -ItemType Directory -Path "$staging/Scripts/Source"   -Force | Out-Null
+
+          Copy-Item $dll                                              "$staging/SKSE/Plugins/SkyUIRecentSort.dll"
+          Copy-Item "$root/interface/skyui/config.txt"               "$staging/Interface/skyui/config.txt"
+          Copy-Item "$root/papyrus/Scripts/Source/SUIR_AcquiredBridge.psc" "$staging/Scripts/Source/SUIR_AcquiredBridge.psc"
+
+          Compress-Archive -Path "$staging/*" -DestinationPath "$root/SkyUIRecentSort-v0.1.0.zip"
+
+      - name: Upload mod zip artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SkyUIRecentSort-mod
+          path: SkyUIRecentSort-v0.1.0.zip
+          if-no-files-found: error

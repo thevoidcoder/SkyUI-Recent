@@ -1,4 +1,6 @@
 build/
+dist/
+source-mod-files-og/
 *.so
 *.dll
 *.pdb

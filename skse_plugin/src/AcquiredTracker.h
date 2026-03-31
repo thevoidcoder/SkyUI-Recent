@@ -42,6 +42,8 @@ namespace skyui_recent
             }
         }
 
+        [[nodiscard]] std::int64_t GetLatestAcquiredTime(std::uint32_t formID) const;
+
         void Clear();
 
     private:

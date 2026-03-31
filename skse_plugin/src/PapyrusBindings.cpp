@@ -1,22 +1,28 @@
 #include "AcquiredTracker.h"
+#include "PapyrusBindings.h"
 
-#include <cstdint>
+#include <RE/Skyrim.h>
 
-namespace skyui_recent
+namespace skyui_recent::papyrus
 {
-    namespace papyrus
+    // Native signature: int function GetItemAcquiredTime(int formID, int uniqueID) global native
+    static std::int32_t GetItemAcquiredTime(
+        RE::StaticFunctionTag*,
+        std::int32_t a_formID,
+        std::int32_t a_uniqueID)
     {
-        // Native signature expected by Papyrus:
-        // int function GetItemAcquiredTime(int formID, int uniqueID) global native
-        std::int32_t GetItemAcquiredTime(std::uint32_t formID, std::uint32_t uniqueID)
-        {
-            return static_cast<std::int32_t>(AcquiredTracker::GetSingleton().GetAcquiredTime(formID, uniqueID));
+        const auto formID   = static_cast<std::uint32_t>(a_formID);
+        const auto uniqueID = static_cast<std::uint32_t>(a_uniqueID);
+        auto ts = AcquiredTracker::GetSingleton().GetAcquiredTime(formID, uniqueID);
+        if (ts == 0 && uniqueID != 0) {
+            ts = AcquiredTracker::GetSingleton().GetLatestAcquiredTime(formID);
         }
+        return static_cast<std::int32_t>(ts);
+    }
 
-        bool Register()
-        {
-            // Bind native function to VirtualMachine here.
-            return true;
-        }
+    bool Register(RE::BSScript::IVirtualMachine* a_vm)
+    {
+        a_vm->RegisterFunction("GetItemAcquiredTime", "SUIR_AcquiredBridge", GetItemAcquiredTime);
+        return true;
     }
 }

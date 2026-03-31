@@ -24,6 +24,18 @@ namespace skyui_recent
         return 0;
     }
 
+    std::int64_t AcquiredTracker::GetLatestAcquiredTime(std::uint32_t formID) const
+    {
+        std::shared_lock lock(_lock);
+        std::int64_t latest = 0;
+        for (const auto& [key, value] : _timestamps) {
+            if (key.formID == formID && value > latest) {
+                latest = value;
+            }
+        }
+        return latest;
+    }
+
     void AcquiredTracker::Clear()
     {
         std::unique_lock lock(_lock);

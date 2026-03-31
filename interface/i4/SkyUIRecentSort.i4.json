@@ -1,23 +1,4 @@
 {
-  "mod": "SkyUIRecentSort",
-  "target": "InventoryMenu",
-  "columns": [
-    {
-      "id": "acquired",
-      "label": "Acquired",
-      "type": "number",
-      "width": 110,
-      "sortable": true,
-      "defaultSort": "desc",
-      "valueProvider": {
-        "type": "papyrusGlobal",
-        "script": "SUIR_AcquiredBridge",
-        "function": "GetItemAcquiredTimeSimple",
-        "args": ["item.form"]
-      },
-      "display": {
-        "type": "timestamp"
-      }
-    }
-  ]
+  "_note": "I4 (Inventory Interface Information Injector) supports icon/tag injection only — it cannot add sortable columns. This file is intentionally inert and kept for reference only.",
+  "_mechanism": "The 'acquiredTime' property is injected into each inventory item's Scaleform GFxValue object via SKSE::ScaleformInterface::Register(RegInvCallback*), triggered when SkyUI calls skse.ExtendData(true). The column is defined in Interface/skyui/config.txt using entry.text = @acquiredTime."
 }

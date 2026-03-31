@@ -1,38 +1,50 @@
 #include "AcquiredTracker.h"
+#include "Serialization.h"
 
-#include <cstdint>
+#include <SKSE/SKSE.h>
+#include <RE/Skyrim.h>
 
-namespace skyui_recent
+namespace skyui_recent::serialization
 {
-    namespace serialization
+    struct SaveRecord
     {
-        inline constexpr std::uint32_t kRecordType = 0x41435144; // ACQD
-        inline constexpr std::uint32_t kVersion = 1;
+        std::uint32_t formID;
+        std::uint32_t uniqueID;
+        std::int64_t  acquiredAt;
+    };
 
-        struct SaveRecord
-        {
-            std::uint32_t formID;
-            std::uint32_t uniqueID;
-            std::int64_t acquiredAt;
-        };
-
-        // Wire these to SKSE::SerializationInterface callbacks in production.
-        void Save()
-        {
-            AcquiredTracker::GetSingleton().ForEach([](std::uint32_t, std::uint32_t, std::int64_t) {
-                // WriteRecordData(...) goes here.
+    void OnSave(SKSE::SerializationInterface* a_intfc)
+    {
+        AcquiredTracker::GetSingleton().ForEach(
+            [a_intfc](std::uint32_t formID, std::uint32_t uniqueID, std::int64_t ts) {
+                if (a_intfc->OpenRecord(kRecordType, kVersion)) {
+                    const SaveRecord rec{ formID, uniqueID, ts };
+                    a_intfc->WriteRecordData(rec);
+                }
             });
-        }
+    }
 
-        void Load()
-        {
-            // ReadRecordData(...) loop goes here.
-            // AcquiredTracker::GetSingleton().MarkItemAdded(record.formID, record.uniqueID, record.acquiredAt);
+    void OnLoad(SKSE::SerializationInterface* a_intfc)
+    {
+        std::uint32_t type = 0, version = 0, length = 0;
+        while (a_intfc->GetNextRecordInfo(type, version, length)) {
+            if (type != kRecordType || length != sizeof(SaveRecord)) {
+                continue;
+            }
+            SaveRecord rec{};
+            if (a_intfc->ReadRecordData(rec) != sizeof(rec)) {
+                continue;
+            }
+            RE::FormID newFormID = 0;
+            if (!a_intfc->ResolveFormID(rec.formID, newFormID)) {
+                continue;
+            }
+            AcquiredTracker::GetSingleton().MarkItemAdded(newFormID, rec.uniqueID, rec.acquiredAt);
         }
+    }
 
-        void Revert()
-        {
-            AcquiredTracker::GetSingleton().Clear();
-        }
+    void OnRevert(SKSE::SerializationInterface*)
+    {
+        AcquiredTracker::GetSingleton().Clear();
     }
 }
