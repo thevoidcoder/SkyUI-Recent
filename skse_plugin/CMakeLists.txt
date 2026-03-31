@@ -6,16 +6,20 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(CommonLibSSE CONFIG REQUIRED)
 
-add_commonlibsse_plugin(SkyUIRecentSort
-    SOURCES
-        src/main.cpp
-        src/AcquiredTracker.cpp
-        src/Serialization.cpp
-        src/PapyrusBindings.cpp
-        src/ScaleformExtension.cpp
+add_library(SkyUIRecentSort SHARED
+    src/main.cpp
+    src/AcquiredTracker.cpp
+    src/Serialization.cpp
+    src/PapyrusBindings.cpp
+    src/ScaleformExtension.cpp
 )
 
 target_include_directories(SkyUIRecentSort PRIVATE src)
+
+target_link_libraries(SkyUIRecentSort
+    PRIVATE
+        CommonLibSSE::CommonLibSSE
+)
 
 if (MSVC)
     target_compile_definitions(SkyUIRecentSort PRIVATE _CRT_SECURE_NO_WARNINGS)

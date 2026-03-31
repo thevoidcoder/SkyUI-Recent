@@ -7,10 +7,14 @@
   "registries": [
     {
       "kind": "git",
-      "repository": "https://github.com/CharmedBaryon/vcpkg-registry",
-      "baseline": "8e5b71e72b4e22e22e6ee4f7d4e8cbebe5e10ab6",
+      "repository": "https://gitlab.com/colorglass/vcpkg-colorglass",
+      "baseline": "7abd808aa0ae8d65710f3a9f77f15937530309aa",
       "packages": [
-        "commonlibsse-ng"
+        "commonlibsse-ng-flatrim",
+        "commonlibsse-ng",
+        "commonlibsse-ng-ae",
+        "commonlibsse-ng-se",
+        "commonlibsse-ng-vr"
       ]
     }
   ]
