@@ -6,6 +6,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(binary_io CONFIG REQUIRED)
 find_package(CommonLibSSE CONFIG REQUIRED)
+find_path(FAST_CPP_CSV_PARSER_INCLUDE_DIRS NAMES "csv.h"
+    PATH_SUFFIXES "fast-cpp-csv-parser" REQUIRED)
 
 add_library(SkyUIRecentSort SHARED
     src/main.cpp
@@ -15,7 +17,10 @@ add_library(SkyUIRecentSort SHARED
     src/ScaleformExtension.cpp
 )
 
-target_include_directories(SkyUIRecentSort PRIVATE src)
+target_include_directories(SkyUIRecentSort PRIVATE
+    src
+    "${FAST_CPP_CSV_PARSER_INCLUDE_DIRS}"
+)
 
 target_link_libraries(SkyUIRecentSort
     PRIVATE
