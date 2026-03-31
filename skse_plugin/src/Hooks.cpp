@@ -19,6 +19,7 @@ namespace skyui_recent::hooks
                                   RE::ExtraDataList* a_extraList, std::int32_t a_count,
                                   RE::TESObjectREFR* a_fromRefr)
         {
+            SKSE::log::trace("AddObjToContainer called actor={} obj={}", fmt::ptr(a_this), fmt::ptr(a_object));
             RE::FormID formID = 0;
             if (a_object && a_this == RE::PlayerCharacter::GetSingleton()) {
                 formID = a_object->GetFormID();
