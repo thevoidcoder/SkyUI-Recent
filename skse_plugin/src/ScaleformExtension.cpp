@@ -21,29 +21,12 @@ namespace skyui_recent::scaleform
         }
 
         const auto formID = form->GetFormID();
+        SKSE::log::trace("OnInventoryItem: {:08X}", formID);
 
-        // Try to find the instance-specific ExtraUniqueID first.
-        std::uint32_t uniqueID = 0;
-        if (a_item->extraLists) {
-            for (const auto* extraList : *a_item->extraLists) {
-                if (extraList) {
-                    const auto* extra = extraList->GetByType<RE::ExtraUniqueID>();
-                    if (extra) {
-                        uniqueID = extra->uniqueID;
-                        break;
-                    }
-                }
-            }
-        }
-
-        auto ts = AcquiredTracker::GetSingleton().GetAcquiredTime(formID, uniqueID);
-        if (ts == 0 && uniqueID != 0) {
-            ts = AcquiredTracker::GetSingleton().GetLatestAcquiredTime(formID);
-        }
+        const auto ts = AcquiredTracker::GetSingleton().GetLatestAcquiredTime(formID);
 
         RE::GFxValue val{ static_cast<double>(ts) };
-        if (!a_object->SetMember("acquiredTime", val)) {
-            SKSE::log::warn("ScaleformExtension: SetMember(acquiredTime) failed for formID {:08X}", formID);
-        }
+        a_object->SetMember("acquiredTime", val);
+        SKSE::log::trace("OnInventoryItem: {:08X} ts={} done", formID, ts);
     }
 }
