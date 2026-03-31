@@ -14,21 +14,17 @@ extern "C" __declspec(dllexport) bool SKSEAPI SKSEPlugin_Query(
     return !a_skse->IsEditor();
 }
 
-extern "C" __declspec(dllexport) constinit auto SKSEPlugin_Version = []() {
+extern "C" __declspec(dllexport) auto SKSEPlugin_Version = []() {
     SKSE::PluginVersionData v;
     v.PluginVersion(REL::Version{ 1, 0, 0, 0 });
     v.PluginName("SkyUIRecentSort");
     v.AuthorName("");
     v.UsesAddressLibrary(true);
-    v.CompatibleVersions({ SKSE::RUNTIME_SSE_LATEST });
-    v.HasNoStructUse(true);
     return v;
 }();
 
 SKSEPluginLoad(const SKSE::LoadInterface* a_skse)
 {
-    REL::Module::reset();
-
     SKSE::Init(a_skse);
 
     if (const auto logDir = SKSE::log::log_directory()) {
