@@ -5,8 +5,30 @@
 #include "ScaleformExtension.h"
 #include "Serialization.h"
 
+extern "C" __declspec(dllexport) bool SKSEAPI SKSEPlugin_Query(
+    const SKSE::QueryInterface* a_skse, SKSE::PluginInfo* a_info)
+{
+    a_info->infoVersion = SKSE::PluginInfo::kVersion;
+    a_info->name       = "SkyUIRecentSort";
+    a_info->version    = 1;
+    return !a_skse->IsEditor();
+}
+
+extern "C" __declspec(dllexport) constinit auto SKSEPlugin_Version = []() {
+    SKSE::PluginVersionData v;
+    v.PluginVersion(REL::Version{ 1, 0, 0, 0 });
+    v.PluginName("SkyUIRecentSort");
+    v.AuthorName("");
+    v.UsesAddressLibrary(true);
+    v.CompatibleVersions({ SKSE::RUNTIME_SSE_LATEST });
+    v.HasNoStructUse(true);
+    return v;
+}();
+
 SKSEPluginLoad(const SKSE::LoadInterface* a_skse)
 {
+    REL::Module::reset();
+
     SKSE::Init(a_skse);
 
     if (const auto logDir = SKSE::log::log_directory()) {
