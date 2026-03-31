@@ -18,5 +18,6 @@
         "commonlibsse-ng-vr"
       ]
     }
-  ]
+  ],
+  "overlay-ports": ["./ports"]
 }
