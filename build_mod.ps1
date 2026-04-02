@@ -46,7 +46,7 @@ $PluginSrc   = Join-Path $ProjectRoot "skse_plugin"
 $BuildDir    = Join-Path $PluginSrc   "build"
 $DistDir     = Join-Path $ProjectRoot "dist"
 $ModName     = "SkyUIRecentSort"
-$Version     = "0.1.0"
+$Version     = "0.1.1"
 $ZipName     = "$ModName-v$Version.zip"
 $ZipPath     = Join-Path $DistDir $ZipName
 $StagingDir  = Join-Path $DistDir "staging"
@@ -165,11 +165,11 @@ New-Item -ItemType Directory -Path $SksePluginsDir -Force | Out-Null
 Copy-Item $DllPath (Join-Path $SksePluginsDir "$ModName.dll")
 Ok "Staged: SKSE\Plugins\$ModName.dll"
 
-# Interface/skyui/config.txt
-$InterfaceDir = Join-Path $StagingDir "Interface\skyui"
-New-Item -ItemType Directory -Path $InterfaceDir -Force | Out-Null
-Copy-Item (Join-Path $ProjectRoot "interface\skyui\config.txt") (Join-Path $InterfaceDir "config.txt")
-Ok "Staged: Interface\skyui\config.txt"
+# Interface/skyui/config.txt - NO LONGER SHIPPED (injected via DLL)
+# $InterfaceDir = Join-Path $StagingDir "Interface\skyui"
+# New-Item -ItemType Directory -Path $InterfaceDir -Force | Out-Null
+# Copy-Item (Join-Path $ProjectRoot "interface\skyui\config.txt") (Join-Path $InterfaceDir "config.txt")
+# Ok "Staged: Interface\skyui\config.txt"
 
 # Scripts\Source\SUIR_AcquiredBridge.psc
 $ScriptSrcDir = Join-Path $StagingDir "Scripts\Source"

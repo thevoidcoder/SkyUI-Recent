@@ -90,11 +90,11 @@ jobs:
           Copy-Item $dll                                              "$staging/SKSE/Plugins/SkyUIRecentSort.dll"
           Copy-Item "$root/papyrus/Scripts/Source/SUIR_AcquiredBridge.psc" "$staging/Scripts/Source/SUIR_AcquiredBridge.psc"
 
-          Compress-Archive -Path "$staging/*" -DestinationPath "$root/SkyUIRecentSort-v0.1.0.zip"
+          Compress-Archive -Path "$staging/*" -DestinationPath "$root/SkyUIRecentSort-v0.1.1.zip"
 
       - name: Upload mod zip artifact
         uses: actions/upload-artifact@v4
         with:
           name: SkyUIRecentSort-mod
-          path: SkyUIRecentSort-v0.1.0.zip
+          path: SkyUIRecentSort-v0.1.1.zip
           if-no-files-found: error
