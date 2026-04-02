@@ -85,11 +85,9 @@ jobs:
           $dll     = "${{ steps.find_dll.outputs.dll_path }}"
 
           New-Item -ItemType Directory -Path "$staging/SKSE/Plugins"    -Force | Out-Null
-          New-Item -ItemType Directory -Path "$staging/Interface/skyui"  -Force | Out-Null
           New-Item -ItemType Directory -Path "$staging/Scripts/Source"   -Force | Out-Null
 
           Copy-Item $dll                                              "$staging/SKSE/Plugins/SkyUIRecentSort.dll"
-          Copy-Item "$root/interface/skyui/config.txt"               "$staging/Interface/skyui/config.txt"
           Copy-Item "$root/papyrus/Scripts/Source/SUIR_AcquiredBridge.psc" "$staging/Scripts/Source/SUIR_AcquiredBridge.psc"
 
           Compress-Archive -Path "$staging/*" -DestinationPath "$root/SkyUIRecentSort-v0.1.0.zip"

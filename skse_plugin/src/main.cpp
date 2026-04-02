@@ -1,5 +1,6 @@
 #include "PCH.h"
 
+#include "ConfigInjector.h"
 #include "Hooks.h"
 #include "PapyrusBindings.h"
 #include "ScaleformExtension.h"
@@ -55,6 +56,13 @@ SKSEPluginLoad(const SKSE::LoadInterface* a_skse)
     SKSE::GetPapyrusInterface()->Register(skyui_recent::papyrus::Register);
 
     SKSE::GetScaleformInterface()->Register(skyui_recent::scaleform::OnInventoryItem);
+
+    SKSE::GetMessagingInterface()->RegisterListener(
+        [](SKSE::MessagingInterface::Message* a_msg) {
+            if (a_msg->type == SKSE::MessagingInterface::kDataLoaded) {
+                skyui_recent::config_injector::Register();
+            }
+        });
 
     return true;
 }

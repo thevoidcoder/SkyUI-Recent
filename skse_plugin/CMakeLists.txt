@@ -16,6 +16,7 @@ add_library(SkyUIRecentSort SHARED
     src/Serialization.cpp
     src/PapyrusBindings.cpp
     src/ScaleformExtension.cpp
+    src/ConfigInjector.cpp
 )
 
 target_include_directories(SkyUIRecentSort PRIVATE
