@@ -3,6 +3,8 @@ name: Build Plugin
 on:
   push:
     branches: [main, master]
+    tags:
+      - 'v*'  # Trigger on version tags like v0.1.2
   pull_request:
     branches: [main, master]
   workflow_dispatch:   # lets you trigger manually from the GitHub web UI
@@ -10,10 +12,21 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Get version from VERSION file
+        id: get_version
+        shell: pwsh
+        run: |
+          $version = Get-Content -Path "${{ github.workspace }}/VERSION" -Raw
+          $version = $version.Trim()
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+          echo "Building version: $version"
 
       # Cache vcpkg downloads + built packages so repeat builds are fast
       - name: Setup vcpkg
@@ -80,9 +93,10 @@ jobs:
       - name: Package mod zip
         shell: pwsh
         run: |
-          $root    = "${{ github.workspace }}"
-          $staging = "$root/staging"
-          $dll     = "${{ steps.find_dll.outputs.dll_path }}"
+          $root     = "${{ github.workspace }}"
+          $staging  = "$root/staging"
+          $dll      = "${{ steps.find_dll.outputs.dll_path }}"
+          $version  = "${{ steps.get_version.outputs.version }}"
 
           New-Item -ItemType Directory -Path "$staging/SKSE/Plugins"    -Force | Out-Null
           New-Item -ItemType Directory -Path "$staging/Scripts/Source"   -Force | Out-Null
@@ -90,11 +104,45 @@ jobs:
           Copy-Item $dll                                              "$staging/SKSE/Plugins/SkyUIRecentSort.dll"
           Copy-Item "$root/papyrus/Scripts/Source/SUIR_AcquiredBridge.psc" "$staging/Scripts/Source/SUIR_AcquiredBridge.psc"
 
-          Compress-Archive -Path "$staging/*" -DestinationPath "$root/SkyUIRecentSort-v0.1.1.zip"
+          Compress-Archive -Path "$staging/*" -DestinationPath "$root/SkyUIRecentSort-v$version.zip"
+          echo "Created: SkyUIRecentSort-v$version.zip"
 
       - name: Upload mod zip artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SkyUIRecentSort-mod
-          path: SkyUIRecentSort-v0.1.1.zip
+          name: SkyUIRecentSort-v${{ steps.get_version.outputs.version }}
+          path: SkyUIRecentSort-v${{ steps.get_version.outputs.version }}.zip
           if-no-files-found: error
+
+  # Auto-release job - runs only on version tags
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get version
+        id: get_version
+        run: |
+          VERSION=$(cat VERSION)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: SkyUIRecentSort-v${{ steps.get_version.outputs.version }}
+          path: ./artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./artifacts/SkyUIRecentSort-v${{ steps.get_version.outputs.version }}.zip
+          name: SkyUIRecentSort v${{ steps.get_version.outputs.version }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

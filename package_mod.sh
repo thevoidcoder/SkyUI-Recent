@@ -16,7 +16,7 @@ set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MOD_NAME="SkyUIRecentSort"
-VERSION="0.1.1"
+VERSION="0.1.2"
 DIST_DIR="$PROJECT_ROOT/dist"
 STAGING_DIR="$DIST_DIR/staging"
 ZIP_PATH="$DIST_DIR/${MOD_NAME}-v${VERSION}.zip"

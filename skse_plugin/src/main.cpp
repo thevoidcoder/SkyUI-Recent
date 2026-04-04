@@ -42,7 +42,7 @@ SKSEPluginLoad(const SKSE::LoadInterface* a_skse)
         spdlog::set_default_logger(std::move(log));
     }
 
-    SKSE::log::info("SkyUIRecentSort v0.1.1 loaded.");
+    SKSE::log::info("SkyUIRecentSort v0.1.2 loaded.");
 
     SKSE::AllocTrampoline(1 << 8);
     skyui_recent::hooks::Install();
