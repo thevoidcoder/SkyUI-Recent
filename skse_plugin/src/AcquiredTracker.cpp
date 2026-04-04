@@ -70,14 +70,13 @@ namespace skyui_recent
         auto* player = RE::PlayerCharacter::GetSingleton();
         if (!player) return;
 
-        auto* inv = player->GetInventory();
-        if (!inv) return;
+        auto inv = player->GetInventory();
 
         std::unique_lock lock(_lock);
         
         std::int64_t nextTimestamp = _counter + 1;
 
-        for (const auto& [item, data] : *inv) {
+        for (const auto& [item, data] : inv) {
             if (!item) continue;
             
             auto formID = item->GetFormID();
