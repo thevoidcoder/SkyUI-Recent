@@ -25,18 +25,19 @@ namespace skyui_recent::hooks
                                   RE::ExtraDataList* a_extraList, std::int32_t a_count,
                                   RE::TESObjectREFR* a_fromRefr)
         {
-            SKSE::log::trace("AddObjToContainer called actor={} obj={}", fmt::ptr(a_this), fmt::ptr(a_object));
             RE::FormID formID = 0;
             if (a_object && a_this == RE::PlayerCharacter::GetSingleton()) {
                 formID = a_object->GetFormID();
-                SKSE::log::trace("AddObjToContainer formID={:08X}", formID);
+                const char* source = a_fromRefr ? "container/NPC" : "direct/quest";
+                SKSE::log::trace("AddObjToContainer: player receiving {:08X} x{} from {}",
+                                formID, a_count, source);
             }
 
             _AddObjectToContainer(a_this, a_object, a_extraList, a_count, a_fromRefr);
 
             if (formID != 0) {
                 AcquiredTracker::GetSingleton().MarkItemAdded(formID, 0);
-                SKSE::log::trace("Tracked (container) {:08X}", formID);
+                SKSE::log::trace("Tracked (AddObjToContainer) {:08X}", formID);
             }
         }
 

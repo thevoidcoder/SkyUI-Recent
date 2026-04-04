@@ -1,5 +1,6 @@
 #include <mutex>
 #include "AcquiredTracker.h"
+#include <RE/Skyrim.h>
 
 namespace skyui_recent
 {
@@ -62,5 +63,46 @@ namespace skyui_recent
         std::unique_lock lock(_lock);
         _timestamps.clear();
         _counter = 0;
+    }
+
+    void AcquiredTracker::RandomizeExistingInventory()
+    {
+        auto* player = RE::PlayerCharacter::GetSingleton();
+        if (!player) return;
+
+        auto* inv = player->GetInventory();
+        if (!inv) return;
+
+        std::unique_lock lock(_lock);
+        
+        std::int64_t nextTimestamp = _counter + 1;
+
+        for (const auto& [item, data] : *inv) {
+            if (!item) continue;
+            
+            auto formID = item->GetFormID();
+            
+            // Only assign if not already tracked
+            ItemKey key{ formID, 0 };
+            if (_timestamps.find(key) == _timestamps.end()) {
+                _timestamps[key] = nextTimestamp++;
+            }
+        }
+        
+        _counter = nextTimestamp - 1;
+
+        SKSE::log::info("AcquiredTracker: assigned sequential timestamps to {} existing items", _timestamps.size());
+    }
+
+    std::int64_t AcquiredTracker::GetCounter() const
+    {
+        std::shared_lock lock(_lock);
+        return _counter;
+    }
+
+    void AcquiredTracker::SetCounter(std::int64_t value)
+    {
+        std::unique_lock lock(_lock);
+        _counter = value;
     }
 }

@@ -26,6 +26,7 @@ namespace skyui_recent::serialization
 
     void OnLoad(SKSE::SerializationInterface* a_intfc)
     {
+        bool foundData = false;
         std::uint32_t type = 0, version = 0, length = 0;
         while (a_intfc->GetNextRecordInfo(type, version, length)) {
             if (type != kRecordType || length != sizeof(SaveRecord)) {
@@ -40,6 +41,16 @@ namespace skyui_recent::serialization
                 continue;
             }
             AcquiredTracker::GetSingleton().RestoreItem(newFormID, rec.uniqueID, rec.acquiredAt);
+            foundData = true;
+        }
+        
+        // First load with this mod - randomize existing inventory so items don't all show 0
+        if (!foundData) {
+            SKSE::log::info("First load detected - randomizing existing inventory");
+            // Schedule this to run after player data is fully loaded
+            SKSE::GetTaskInterface()->AddTask([]() {
+                AcquiredTracker::GetSingleton().RandomizeExistingInventory();
+            });
         }
     }
 

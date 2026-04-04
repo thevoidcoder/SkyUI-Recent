@@ -236,7 +236,12 @@ namespace skyui_recent::config_injector
 
     // -----------------------------------------------------------------------
     //  Retry scheduler – polls once per game frame until config is ready.
+    //  Now monitors for config reloads and re-injects to handle mods that
+    //  load config.txt after us.
     // -----------------------------------------------------------------------
+
+    static std::unordered_map<std::string, double> _lastKnownPhase;
+    static std::unordered_map<std::string, bool> _hasInjected;
 
     static void ScheduleInject(std::string menuName, int retries = 0);
 
@@ -249,11 +254,33 @@ namespace skyui_recent::config_injector
 
                 auto view = ui->GetMovieView(name);
                 if (!view) {
-                    // Menu closed before we could inject – give up silently.
+                    // Menu closed – clean up tracking
+                    _lastKnownPhase.erase(name);
+                    _hasInjected.erase(name);
                     return;
                 }
 
+                // Check current phase
+                RE::GFxValue configMgr;
+                if (view->GetVariable(&configMgr, "_global.skyui.util.ConfigManager")) {
+                    RE::GFxValue phaseVal;
+                    configMgr.GetMember("_loadPhase", &phaseVal);
+                    double currentPhase = phaseVal.IsNumber() ? phaseVal.GetNumber() : -1.0;
+
+                    // Detect config reload (phase went back to 0 or 1 after being at 2)
+                    auto lastPhase = _lastKnownPhase[name];
+                    if (_hasInjected[name] && currentPhase < lastPhase && currentPhase >= 0.0) {
+                        SKSE::log::info("ConfigInjector: config reloaded on {} (phase {} -> {}), re-injecting",
+                                        name, lastPhase, currentPhase);
+                        _hasInjected[name] = false;
+                    }
+                    _lastKnownPhase[name] = currentPhase;
+                }
+
                 bool done = InjectAcquiredColumn(view.get());
+                if (done) {
+                    _hasInjected[name] = true;
+                }
 
                 if (!done && retries < 240) {
                     // Retry next frame (~4 s at 60 fps covers the 3 s timeout).
@@ -261,6 +288,9 @@ namespace skyui_recent::config_injector
                 } else if (!done) {
                     SKSE::log::warn("ConfigInjector: gave up on {} after {} retries",
                                     name, retries);
+                } else if (retries < 240) {
+                    // Keep monitoring for config reloads even after successful injection
+                    ScheduleInject(name, retries + 1);
                 }
             });
     }

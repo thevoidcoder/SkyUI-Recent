@@ -47,6 +47,13 @@ namespace skyui_recent
 
         void Clear();
 
+        // Randomize existing inventory items on first load
+        void RandomizeExistingInventory();
+
+        // Get/set counter for serialization
+        [[nodiscard]] std::int64_t GetCounter() const;
+        void SetCounter(std::int64_t value);
+
     private:
         mutable std::shared_mutex _lock;
         std::int64_t _counter{ 0 };

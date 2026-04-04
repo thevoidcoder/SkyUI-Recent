@@ -5,3 +5,4 @@ source-mod-files-og/
 *.dll
 *.pdb
 TrueHUD/
+HANDOFF*
