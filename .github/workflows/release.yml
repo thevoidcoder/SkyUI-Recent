@@ -1,19 +1,13 @@
-name: Build Plugin
+name: Release
 
 on:
-  push:
-    branches: [main, master]
-    tags:
-      - 'v*'  # Trigger on version tags like v0.1.2
-  pull_request:
-    branches: [main, master]
-  workflow_dispatch:   # lets you trigger manually from the GitHub web UI
+  workflow_dispatch:  # Manual trigger only from GitHub Actions UI
 
 jobs:
-  build:
+  build-and-release:
     runs-on: windows-latest
-    outputs:
-      version: ${{ steps.get_version.outputs.version }}
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout
@@ -82,14 +76,7 @@ jobs:
                  Select-Object -First 1 -ExpandProperty FullName
           echo "dll_path=$dll" >> $env:GITHUB_OUTPUT
 
-      - name: Upload DLL artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: SkyUIRecentSort-dll
-          path: ${{ steps.find_dll.outputs.dll_path }}
-          if-no-files-found: error
-
-      # Full packaged zip (without Papyrus — no Skyrim on the runner)
+      # Package the mod
       - name: Package mod zip
         shell: pwsh
         run: |
@@ -107,9 +94,12 @@ jobs:
           Compress-Archive -Path "$staging/*" -DestinationPath "$root/SkyUIRecentSort-v$version.zip"
           echo "Created: SkyUIRecentSort-v$version.zip"
 
-      - name: Upload mod zip artifact
-        uses: actions/upload-artifact@v4
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: SkyUIRecentSort-v${{ steps.get_version.outputs.version }}
-          path: SkyUIRecentSort-v${{ steps.get_version.outputs.version }}.zip
-          if-no-files-found: error
+          files: SkyUIRecentSort-v${{ steps.get_version.outputs.version }}.zip
+          tag_name: v${{ steps.get_version.outputs.version }}
+          name: SkyUIRecentSort v${{ steps.get_version.outputs.version }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
