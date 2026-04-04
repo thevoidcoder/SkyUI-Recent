@@ -20,10 +20,17 @@ namespace skyui_recent::scaleform
             return;
         }
 
+        // Initialize pre-existing inventory on first menu open (thread-safe, runs once)
+        auto& tracker = AcquiredTracker::GetSingleton();
+        if (!tracker.IsInitialized()) {
+            SKSE::log::trace("First inventory display - initializing pre-existing items");
+            tracker.RandomizeExistingInventory();
+        }
+
         const auto formID = form->GetFormID();
         SKSE::log::trace("OnInventoryItem: {:08X}", formID);
 
-        const auto ts = AcquiredTracker::GetSingleton().GetLatestAcquiredTime(formID);
+        const auto ts = tracker.GetLatestAcquiredTime(formID);
 
         RE::GFxValue val{ static_cast<double>(ts) };
         a_object->SetMember("acquiredTime", val);

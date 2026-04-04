@@ -53,10 +53,15 @@ namespace skyui_recent
         // Get/set counter for serialization
         [[nodiscard]] std::int64_t GetCounter() const;
         void SetCounter(std::int64_t value);
+        
+        // Check if initialization has been done
+        [[nodiscard]] bool IsInitialized() const;
+        void SetInitialized(bool value);
 
     private:
         mutable std::shared_mutex _lock;
         std::int64_t _counter{ 0 };
         std::unordered_map<ItemKey, std::int64_t, ItemKeyHash> _timestamps;
+        bool _initialized{ false };
     };
 }

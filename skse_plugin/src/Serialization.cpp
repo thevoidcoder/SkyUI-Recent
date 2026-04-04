@@ -26,6 +26,7 @@ namespace skyui_recent::serialization
 
     void OnLoad(SKSE::SerializationInterface* a_intfc)
     {
+        bool hasData = false;
         std::uint32_t type = 0, version = 0, length = 0;
         while (a_intfc->GetNextRecordInfo(type, version, length)) {
             if (type != kRecordType || length != sizeof(SaveRecord)) {
@@ -40,9 +41,13 @@ namespace skyui_recent::serialization
                 continue;
             }
             AcquiredTracker::GetSingleton().RestoreItem(newFormID, rec.uniqueID, rec.acquiredAt);
+            hasData = true;
         }
-        // Note: First-time inventory randomization is now handled via messaging
-        // after kDataLoaded to avoid interfering with save game loading
+        
+        // If we loaded save data, mark as initialized (don't randomize on first menu open)
+        if (hasData) {
+            AcquiredTracker::GetSingleton().SetInitialized(true);
+        }
     }
 
     void OnRevert(SKSE::SerializationInterface*)

@@ -67,6 +67,14 @@ namespace skyui_recent
 
     void AcquiredTracker::RandomizeExistingInventory()
     {
+        {
+            std::shared_lock lock(_lock);
+            if (_initialized) {
+                SKSE::log::trace("AcquiredTracker: already initialized, skipping");
+                return;
+            }
+        }
+
         auto* player = RE::PlayerCharacter::GetSingleton();
         if (!player) return;
 
@@ -74,7 +82,11 @@ namespace skyui_recent
 
         std::unique_lock lock(_lock);
         
+        // Double-check after acquiring write lock
+        if (_initialized) return;
+        
         std::int64_t nextTimestamp = _counter + 1;
+        int itemsProcessed = 0;
 
         for (const auto& [item, data] : inv) {
             if (!item) continue;
@@ -85,12 +97,14 @@ namespace skyui_recent
             ItemKey key{ formID, 0 };
             if (_timestamps.find(key) == _timestamps.end()) {
                 _timestamps[key] = nextTimestamp++;
+                itemsProcessed++;
             }
         }
         
         _counter = nextTimestamp - 1;
+        _initialized = true;
 
-        SKSE::log::info("AcquiredTracker: assigned sequential timestamps to {} existing items", _timestamps.size());
+        SKSE::log::info("AcquiredTracker: initialized {} pre-existing items with sequential timestamps", itemsProcessed);
     }
 
     std::int64_t AcquiredTracker::GetCounter() const
@@ -103,5 +117,17 @@ namespace skyui_recent
     {
         std::unique_lock lock(_lock);
         _counter = value;
+    }
+
+    bool AcquiredTracker::IsInitialized() const
+    {
+        std::shared_lock lock(_lock);
+        return _initialized;
+    }
+
+    void AcquiredTracker::SetInitialized(bool value)
+    {
+        std::unique_lock lock(_lock);
+        _initialized = value;
     }
 }

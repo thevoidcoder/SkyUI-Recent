@@ -282,15 +282,24 @@ namespace skyui_recent::config_injector
                     _hasInjected[name] = true;
                 }
 
+                // Monitor for config reloads, but cap at reasonable limit to avoid infinite loops
+                constexpr int kMaxMonitorFrames = 600;  // 10 seconds at 60fps
+                
                 if (!done && retries < 240) {
-                    // Retry next frame (~4 s at 60 fps covers the 3 s timeout).
+                    // Config not ready yet - retry
                     ScheduleInject(name, retries + 1);
                 } else if (!done) {
                     SKSE::log::warn("ConfigInjector: gave up on {} after {} retries",
                                     name, retries);
-                } else if (retries < 240) {
-                    // Keep monitoring for config reloads even after successful injection
+                } else if (retries < kMaxMonitorFrames) {
+                    // Keep monitoring for config reloads for a limited time
                     ScheduleInject(name, retries + 1);
+                } else {
+                    // Stop monitoring after max frames
+                    SKSE::log::trace("ConfigInjector: stopped monitoring {} after {} frames", 
+                                     name, retries);
+                    _lastKnownPhase.erase(name);
+                    _hasInjected.erase(name);
                 }
             });
     }
