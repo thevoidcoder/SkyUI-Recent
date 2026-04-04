@@ -1,5 +1,6 @@
 #include "PCH.h"
 
+#include "AcquiredTracker.h"
 #include "ConfigInjector.h"
 #include "Hooks.h"
 #include "PapyrusBindings.h"
