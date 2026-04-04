@@ -20,12 +20,10 @@ namespace skyui_recent::scaleform
             return;
         }
 
-        // Initialize pre-existing inventory on first menu open (thread-safe, runs once)
+        // DISABLED: RandomizeExistingInventory causes crashes
+        // Pre-existing items will show timestamp 0 until acquired again
+        // TODO: Find safe way to initialize inventory or accept 0 for pre-existing items
         auto& tracker = AcquiredTracker::GetSingleton();
-        if (!tracker.IsInitialized()) {
-            SKSE::log::trace("First inventory display - initializing pre-existing items");
-            tracker.RandomizeExistingInventory();
-        }
 
         const auto formID = form->GetFormID();
         SKSE::log::trace("OnInventoryItem: {:08X}", formID);
