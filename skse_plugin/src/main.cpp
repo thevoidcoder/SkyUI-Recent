@@ -61,6 +61,17 @@ SKSEPluginLoad(const SKSE::LoadInterface* a_skse)
         [](SKSE::MessagingInterface::Message* a_msg) {
             if (a_msg->type == SKSE::MessagingInterface::kDataLoaded) {
                 skyui_recent::config_injector::Register();
+                
+                // Safely initialize inventory timestamps after data is fully loaded
+                // This avoids interfering with save game loading process
+                SKSE::GetTaskInterface()->AddTask([]() {
+                    // Only randomize if we have no tracked items (first time load)
+                    auto& tracker = AcquiredTracker::GetSingleton();
+                    if (tracker.GetCounter() == 0) {
+                        SKSE::log::info("First load detected - initializing inventory timestamps");
+                        tracker.RandomizeExistingInventory();
+                    }
+                });
             }
         });
 

@@ -27,6 +27,13 @@ namespace skyui_recent::hooks
         {
             RE::FormID formID = 0;
             if (a_object && a_this == RE::PlayerCharacter::GetSingleton()) {
+                // Skip if UI not available or game is loading - prevents cell loading issues
+                auto* ui = RE::UI::GetSingleton();
+                if (!ui || ui->GameIsPaused()) {
+                    _AddObjectToContainer(a_this, a_object, a_extraList, a_count, a_fromRefr);
+                    return;
+                }
+                
                 formID = a_object->GetFormID();
                 const char* source = a_fromRefr ? "container/NPC" : "direct/quest";
                 SKSE::log::trace("AddObjToContainer: player receiving {:08X} x{} from {}",
@@ -46,6 +53,13 @@ namespace skyui_recent::hooks
         {
             RE::FormID baseFormID = 0;
             if (a_object && a_this == RE::PlayerCharacter::GetSingleton()) {
+                // Skip if UI not available or game is loading
+                auto* ui = RE::UI::GetSingleton();
+                if (!ui || ui->GameIsPaused()) {
+                    _PickUpObject(a_this, a_object, a_count, a_arg3, a_playSound);
+                    return;
+                }
+                
                 if (auto* base = a_object->GetBaseObject()) {
                     baseFormID = base->GetFormID();
                     SKSE::log::trace("PickUpObject: baseFormID={:08X}", baseFormID);
