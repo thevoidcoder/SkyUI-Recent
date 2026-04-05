@@ -20,9 +20,20 @@ namespace skyui_recent::papyrus
         return static_cast<std::int32_t>(ts);
     }
 
+    // Native signature: int function PrefillInventory() global native
+    // Assigns timestamps to all untracked inventory items
+    static std::int32_t PrefillInventory(RE::StaticFunctionTag*)
+    {
+        AcquiredTracker::GetSingleton().RandomizeExistingInventory();
+        SKSE::log::info("PrefillInventory: Console command executed");
+        return 1;
+    }
+
     bool Register(RE::BSScript::IVirtualMachine* a_vm)
     {
         a_vm->RegisterFunction("GetItemAcquiredTime", "SUIR_AcquiredBridge", GetItemAcquiredTime);
+        a_vm->RegisterFunction("PrefillInventory", "SUIR_AcquiredBridge", PrefillInventory);
+        SKSE::log::info("Papyrus: Registered native functions");
         return true;
     }
 }
