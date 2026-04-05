@@ -6,3 +6,11 @@ source-mod-files-og/
 *.pdb
 TrueHUD/
 HANDOFF*
+
+# Compiled Papyrus scripts
+*.pex
+*.obj
+.papyrus/
+
+# Papyrus compiler
+papyrus-compiler/

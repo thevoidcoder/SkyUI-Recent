@@ -98,7 +98,59 @@ jobs:
             throw "ESP generation failed"
           }
 
-      # Full packaged zip (with ESP, without compiled Papyrus .pex)
+      # Download Papyrus Compiler
+      - name: Download Papyrus Compiler
+        shell: pwsh
+        run: |
+          $compilerUrl = "https://github.com/russo-2025/papyrus-compiler/releases/latest/download/papyrus-compiler-windows.zip"
+          $compilerZip = "${{ github.workspace }}/papyrus-compiler.zip"
+          $compilerDir = "${{ github.workspace }}/papyrus-compiler"
+          
+          Write-Host "Downloading Papyrus Compiler..."
+          Invoke-WebRequest -Uri $compilerUrl -OutFile $compilerZip
+          
+          Write-Host "Extracting Papyrus Compiler..."
+          Expand-Archive -Path $compilerZip -DestinationPath $compilerDir -Force
+          
+          # Find the papyrus.exe
+          $papyrusExe = Get-ChildItem -Path $compilerDir -Filter "papyrus.exe" -Recurse | Select-Object -First 1
+          if (-not $papyrusExe) {
+            throw "papyrus.exe not found in downloaded archive"
+          }
+          
+          echo "papyrus_path=$($papyrusExe.FullName)" >> $env:GITHUB_OUTPUT
+        id: download_compiler
+
+      # Compile Papyrus Scripts
+      - name: Compile Papyrus Scripts
+        shell: pwsh
+        run: |
+          $papyrus = "${{ steps.download_compiler.outputs.papyrus_path }}"
+          $root = "${{ github.workspace }}"
+          $scriptsOut = "$root/scripts"
+          
+          Write-Host "Compiling Papyrus scripts..."
+          
+          # Compile SkyUIRecentSort_MCM.psc
+          & $papyrus compile -i "$root/scripts/source/SkyUIRecentSort_MCM.psc" -o "$scriptsOut"
+          if ($LASTEXITCODE -ne 0) { throw "Failed to compile SkyUIRecentSort_MCM.psc" }
+          
+          # Compile SkyUIRecentSort_Quest.psc
+          & $papyrus compile -i "$root/scripts/source/SkyUIRecentSort_Quest.psc" -o "$scriptsOut"
+          if ($LASTEXITCODE -ne 0) { throw "Failed to compile SkyUIRecentSort_Quest.psc" }
+          
+          # Compile SUIR_AcquiredBridge.psc
+          & $papyrus compile -i "$root/papyrus/Scripts/Source/SUIR_AcquiredBridge.psc" -o "$scriptsOut"
+          if ($LASTEXITCODE -ne 0) { throw "Failed to compile SUIR_AcquiredBridge.psc" }
+          
+          # Verify .pex files were created
+          if (-not (Test-Path "$scriptsOut/SkyUIRecentSort_MCM.pex")) { throw "SkyUIRecentSort_MCM.pex not created" }
+          if (-not (Test-Path "$scriptsOut/SkyUIRecentSort_Quest.pex")) { throw "SkyUIRecentSort_Quest.pex not created" }
+          if (-not (Test-Path "$scriptsOut/SUIR_AcquiredBridge.pex")) { throw "SUIR_AcquiredBridge.pex not created" }
+          
+          Write-Host "All Papyrus scripts compiled successfully"
+
+      # Full packaged zip (with ESP and compiled Papyrus .pex)
       - name: Package mod zip
         shell: pwsh
         run: |
@@ -108,6 +160,7 @@ jobs:
           $version  = "${{ steps.get_version.outputs.version }}"
 
           New-Item -ItemType Directory -Path "$staging/SKSE/Plugins"              -Force | Out-Null
+          New-Item -ItemType Directory -Path "$staging/Scripts"                   -Force | Out-Null
           New-Item -ItemType Directory -Path "$staging/Scripts/Source"            -Force | Out-Null
           New-Item -ItemType Directory -Path "$staging/Interface/Translations"    -Force | Out-Null
 
@@ -117,17 +170,22 @@ jobs:
           # Copy ESP plugin
           Copy-Item "$root/SkyUIRecentSort.esp" "$staging/SkyUIRecentSort.esp"
           
-          # Copy Papyrus source scripts (users need to compile these)
+          # Copy compiled Papyrus scripts (.pex)
+          Copy-Item "$root/scripts/SUIR_AcquiredBridge.pex"     "$staging/Scripts/SUIR_AcquiredBridge.pex"
+          Copy-Item "$root/scripts/SkyUIRecentSort_MCM.pex"     "$staging/Scripts/SkyUIRecentSort_MCM.pex"
+          Copy-Item "$root/scripts/SkyUIRecentSort_Quest.pex"   "$staging/Scripts/SkyUIRecentSort_Quest.pex"
+          
+          # Copy Papyrus source scripts (for reference/modding)
           Copy-Item "$root/papyrus/Scripts/Source/SUIR_AcquiredBridge.psc"  "$staging/Scripts/Source/SUIR_AcquiredBridge.psc"
           Copy-Item "$root/scripts/source/SkyUIRecentSort_MCM.psc"          "$staging/Scripts/Source/SkyUIRecentSort_MCM.psc"
           Copy-Item "$root/scripts/source/SkyUIRecentSort_Quest.psc"        "$staging/Scripts/Source/SkyUIRecentSort_Quest.psc"
+          Copy-Item "$root/scripts/source/SKI_ConfigBase.psc"               "$staging/Scripts/Source/SKI_ConfigBase.psc"
           
           # Copy MCM translations
           Copy-Item "$root/Interface/Translations/SkyUIRecentSort_MCM_ENGLISH.txt" "$staging/Interface/Translations/SkyUIRecentSort_MCM_ENGLISH.txt"
           
           # Copy documentation
           Copy-Item "$root/README.md" "$staging/README.md" -ErrorAction SilentlyContinue
-          Copy-Item "$root/COMPILE_SCRIPTS.md" "$staging/COMPILE_SCRIPTS.md" -ErrorAction SilentlyContinue
 
           Compress-Archive -Path "$staging/*" -DestinationPath "$root/SkyUIRecentSort-v$version.zip"
           echo "Created: SkyUIRecentSort-v$version.zip"
