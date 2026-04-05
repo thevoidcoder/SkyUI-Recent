@@ -128,19 +128,21 @@ jobs:
           $papyrus = "${{ steps.download_compiler.outputs.papyrus_path }}"
           $root = "${{ github.workspace }}"
           $scriptsOut = "$root/scripts"
+          $headers1 = "$root/scripts/source"
+          $headers2 = "$root/papyrus/Scripts/Source"
           
           Write-Host "Compiling Papyrus scripts..."
           
           # Compile SkyUIRecentSort_MCM.psc
-          & $papyrus compile -i "$root/scripts/source/SkyUIRecentSort_MCM.psc" -o "$scriptsOut"
+          & $papyrus compile -nocache -h "$headers1" -h "$headers2" -i "$root/scripts/source/SkyUIRecentSort_MCM.psc" -o "$scriptsOut"
           if ($LASTEXITCODE -ne 0) { throw "Failed to compile SkyUIRecentSort_MCM.psc" }
           
           # Compile SkyUIRecentSort_Quest.psc
-          & $papyrus compile -i "$root/scripts/source/SkyUIRecentSort_Quest.psc" -o "$scriptsOut"
+          & $papyrus compile -nocache -h "$headers1" -h "$headers2" -i "$root/scripts/source/SkyUIRecentSort_Quest.psc" -o "$scriptsOut"
           if ($LASTEXITCODE -ne 0) { throw "Failed to compile SkyUIRecentSort_Quest.psc" }
           
           # Compile SUIR_AcquiredBridge.psc
-          & $papyrus compile -i "$root/papyrus/Scripts/Source/SUIR_AcquiredBridge.psc" -o "$scriptsOut"
+          & $papyrus compile -nocache -h "$headers1" -h "$headers2" -i "$root/papyrus/Scripts/Source/SUIR_AcquiredBridge.psc" -o "$scriptsOut"
           if ($LASTEXITCODE -ne 0) { throw "Failed to compile SUIR_AcquiredBridge.psc" }
           
           # Verify .pex files were created
