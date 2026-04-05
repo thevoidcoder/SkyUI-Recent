@@ -89,7 +89,16 @@ jobs:
           path: ${{ steps.find_dll.outputs.dll_path }}
           if-no-files-found: error
 
-      # Full packaged zip (without Papyrus — no Skyrim on the runner)
+      # Generate ESP plugin
+      - name: Generate ESP
+        shell: pwsh
+        run: |
+          python3 "${{ github.workspace }}/tools/generate_esp.py"
+          if (-not (Test-Path "${{ github.workspace }}/SkyUIRecentSort.esp")) {
+            throw "ESP generation failed"
+          }
+
+      # Full packaged zip (with ESP, without compiled Papyrus .pex)
       - name: Package mod zip
         shell: pwsh
         run: |
@@ -98,11 +107,27 @@ jobs:
           $dll      = "${{ steps.find_dll.outputs.dll_path }}"
           $version  = "${{ steps.get_version.outputs.version }}"
 
-          New-Item -ItemType Directory -Path "$staging/SKSE/Plugins"    -Force | Out-Null
-          New-Item -ItemType Directory -Path "$staging/Scripts/Source"   -Force | Out-Null
+          New-Item -ItemType Directory -Path "$staging/SKSE/Plugins"              -Force | Out-Null
+          New-Item -ItemType Directory -Path "$staging/Scripts/Source"            -Force | Out-Null
+          New-Item -ItemType Directory -Path "$staging/Interface/Translations"    -Force | Out-Null
 
-          Copy-Item $dll                                              "$staging/SKSE/Plugins/SkyUIRecentSort.dll"
-          Copy-Item "$root/papyrus/Scripts/Source/SUIR_AcquiredBridge.psc" "$staging/Scripts/Source/SUIR_AcquiredBridge.psc"
+          # Copy DLL
+          Copy-Item $dll "$staging/SKSE/Plugins/SkyUIRecentSort.dll"
+          
+          # Copy ESP plugin
+          Copy-Item "$root/SkyUIRecentSort.esp" "$staging/SkyUIRecentSort.esp"
+          
+          # Copy Papyrus source scripts (users need to compile these)
+          Copy-Item "$root/papyrus/Scripts/Source/SUIR_AcquiredBridge.psc"  "$staging/Scripts/Source/SUIR_AcquiredBridge.psc"
+          Copy-Item "$root/scripts/source/SkyUIRecentSort_MCM.psc"          "$staging/Scripts/Source/SkyUIRecentSort_MCM.psc"
+          Copy-Item "$root/scripts/source/SkyUIRecentSort_Quest.psc"        "$staging/Scripts/Source/SkyUIRecentSort_Quest.psc"
+          
+          # Copy MCM translations
+          Copy-Item "$root/Interface/Translations/SkyUIRecentSort_MCM_ENGLISH.txt" "$staging/Interface/Translations/SkyUIRecentSort_MCM_ENGLISH.txt"
+          
+          # Copy documentation
+          Copy-Item "$root/README.md" "$staging/README.md" -ErrorAction SilentlyContinue
+          Copy-Item "$root/COMPILE_SCRIPTS.md" "$staging/COMPILE_SCRIPTS.md" -ErrorAction SilentlyContinue
 
           Compress-Archive -Path "$staging/*" -DestinationPath "$root/SkyUIRecentSort-v$version.zip"
           echo "Created: SkyUIRecentSort-v$version.zip"

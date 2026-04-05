@@ -1,0 +1,13 @@
+$SRS_PageGeneral	General
+$SRS_HeaderTimestamps	Timestamp Management
+$SRS_InfoText	This mod tracks when you acquire items to sort them by recency in SkyUI.
+$SRS_FillTimestamps	Fill Timestamps for Existing Items
+$SRS_FillTimestamps_Info	Assign timestamps to all items currently in your inventory. Use this once after installing the mod to include pre-existing items in the sorting. This action is permanent and cannot be undone.
+$SRS_WarningText	Warning: Only use this button once, preferably right after installing the mod.
+$SRS_ConfirmFill	Are you sure you want to fill timestamps for all existing items in your inventory? This will assign sequential timestamps to items that don't have one yet.
+$SRS_Yes	Yes
+$SRS_No	No
+$SRS_Success	Successfully assigned timestamps to {1} items!
+$SRS_AlreadyFilled	All items already have timestamps. No changes made.
+$SRS_Error	An error occurred. Please check your SKSE log.
+$SRS_OK	OK
