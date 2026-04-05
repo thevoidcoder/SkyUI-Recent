@@ -63,5 +63,8 @@ namespace skyui_recent
         std::int64_t _counter{ 0 };
         std::unordered_map<ItemKey, std::int64_t, ItemKeyHash> _timestamps;
         bool _initialized{ false };
+        std::uint32_t _lastItemFormID{ 0 };
+        
+        static constexpr std::uint32_t kGoldFormID = 0x0000000F;
     };
 }

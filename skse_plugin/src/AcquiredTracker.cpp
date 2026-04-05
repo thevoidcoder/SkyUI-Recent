@@ -13,8 +13,30 @@ namespace skyui_recent
     void AcquiredTracker::MarkItemAdded(std::uint32_t formID, std::uint32_t extraUniqueID)
     {
         std::unique_lock lock(_lock);
+        
+        // Gold always gets timestamp 1 (bottom of recent list)
+        if (formID == kGoldFormID) {
+            ItemKey key{ formID, extraUniqueID };
+            if (_timestamps.find(key) == _timestamps.end()) {
+                _timestamps[key] = 1;
+                SKSE::log::trace("MarkItemAdded: {:08X} (GOLD) -> timestamp 1 (fixed)", formID);
+            }
+            return;
+        }
+        
+        // If same item as last, don't increment counter (avoid duplicate timestamps)
+        if (formID == _lastItemFormID) {
+            ItemKey key{ formID, extraUniqueID };
+            auto it = _timestamps.find(key);
+            if (it != _timestamps.end()) {
+                SKSE::log::trace("MarkItemAdded: {:08X} (duplicate consecutive) -> reusing timestamp {}", formID, it->second);
+                return;
+            }
+        }
+        
         auto newTimestamp = ++_counter;
         _timestamps[ItemKey{ formID, extraUniqueID }] = newTimestamp;
+        _lastItemFormID = formID;
         SKSE::log::trace("MarkItemAdded: {:08X} (extra={}) -> timestamp {}", formID, extraUniqueID, newTimestamp);
     }
 
@@ -72,6 +94,7 @@ namespace skyui_recent
         std::unique_lock lock(_lock);
         _timestamps.clear();
         _counter = 0;
+        _lastItemFormID = 0;
     }
 
     void AcquiredTracker::RandomizeExistingInventory()
