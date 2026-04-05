@@ -13,7 +13,9 @@ namespace skyui_recent
     void AcquiredTracker::MarkItemAdded(std::uint32_t formID, std::uint32_t extraUniqueID)
     {
         std::unique_lock lock(_lock);
-        _timestamps[ItemKey{ formID, extraUniqueID }] = ++_counter;
+        auto newTimestamp = ++_counter;
+        _timestamps[ItemKey{ formID, extraUniqueID }] = newTimestamp;
+        SKSE::log::trace("MarkItemAdded: {:08X} (extra={}) -> timestamp {}", formID, extraUniqueID, newTimestamp);
     }
 
     void AcquiredTracker::RestoreItem(std::uint32_t formID, std::uint32_t extraUniqueID, std::int64_t counterValue)
@@ -50,10 +52,17 @@ namespace skyui_recent
     {
         std::shared_lock lock(_lock);
         std::int64_t latest = 0;
+        int matchCount = 0;
         for (const auto& [key, value] : _timestamps) {
             if (key.formID == formID && value > latest) {
                 latest = value;
+                matchCount++;
             }
+        }
+        if (matchCount > 0) {
+            SKSE::log::trace("GetLatestAcquiredTime: {:08X} found {} entries, latest={}", formID, matchCount, latest);
+        } else {
+            SKSE::log::trace("GetLatestAcquiredTime: {:08X} NOT FOUND in {} tracked items", formID, _timestamps.size());
         }
         return latest;
     }

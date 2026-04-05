@@ -61,6 +61,7 @@ SKSEPluginLoad(const SKSE::LoadInterface* a_skse)
         [](SKSE::MessagingInterface::Message* a_msg) {
             if (a_msg->type == SKSE::MessagingInterface::kDataLoaded) {
                 skyui_recent::config_injector::Register();
+                skyui_recent::scaleform::RegisterMenuEventHandler();
             }
         });
 

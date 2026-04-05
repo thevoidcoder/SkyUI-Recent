@@ -16,4 +16,7 @@ namespace skyui_recent::scaleform
         RE::GFxMovieView*       a_view,
         RE::GFxValue*           a_object,
         RE::InventoryEntryData* a_item);
+
+    // Register menu event handler for deferred lazy tracking
+    void RegisterMenuEventHandler();
 }
